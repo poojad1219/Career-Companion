@@ -1,0 +1,225 @@
+{
+  "extracted_data": {
+    "personal_information": {
+      "full_name": "Pooja Daglur Surendranath",
+      "email": "poojadaglur96@gmail.com",
+      "phone": "(469) 888-2338",
+      "location": "Bengaluru, India",
+      "linkedin": null,
+      "portfolio": null
+    },
+    "professional_summary": "Product Owner with 14+ years of experience leading digital transformations in highly regulated industries. Expert in translating business needs into scalable, customer-focused solutions while ensuring compliance with privacy and security standards. Skilled in requirements documentation, backlog prioritization and cross-functional collaboration with business, IT and QA teams to deliver value-driven features using Agile and SAFe. Known for modernizing platforms, reducing tech debt, and aligning stakeholders to drive measurable outcomes.",
+    "work_experience": [
+      {
+        "company_name": "Virtusa",
+        "job_title": "Product Owner",
+        "employment_dates": "Jan 2022 – Sep 2022",
+        "location": "Bengaluru, India",
+        "responsibilities": [
+          "Spearheaded British Telecom's digital transformation for legacy e-Commerce; defined and prioritized domain-aligned backlogs reducing system footprint by 10% within a 3-month release cycle.",
+          "Defined user stories with precise domain logic, ensuring smooth migration and 100% functional parity leading to 50% faster response times.",
+          "Reduced cross-team blockers by 40% through API alignment and Agile ceremonies.",
+          "Introduced domain-driven OKRs for core microservices, reducing cross-domain incidents by 30% and accelerating feature delivery by 25%."
+        ],
+        "employment_type": null
+      },
+      {
+        "company_name": "Virtusa",
+        "job_title": "Associate Architect",
+        "employment_dates": "Feb 2020 – Dec 2021",
+        "location": "Cardiff, UK",
+        "responsibilities": [
+          "Redefined BT's omnichannel advisor experience, boosting cross-brand sales by 20% with unified customer insights.",
+          "Enabled intelligent pre-sales journeys and advisor workflows, improving productivity by 20% and increasing bundle conversions by 18%.",
+          "Reduced post-release issues by 45% through data-informed backlog prioritization and iterative loops.",
+          "Led architecture reviews, technical discovery and design sessions to align distributed teams.",
+          "3× \"Star of the Month\" at BT (2020)"
+        ],
+        "employment_type": null
+      },
+      {
+        "company_name": "Virtusa",
+        "job_title": "Lead Specialist - Domain",
+        "employment_dates": "Feb 2017 – Feb 2020",
+        "location": "Bengaluru, India",
+        "responsibilities": [
+          "Designed BT's personalized promotions framework; drove 22% retention improvement through compliant, modular solutions.",
+          "Championed Scrum/SAFe adoption across teams, ensuring 95% release acceptance on first iteration.",
+          "Mentored 8-member dev/test team, increasing velocity by 20% and fostering continuous improvement.",
+          "Stellar Award at Virtusa for project performance and leadership"
+        ],
+        "employment_type": null
+      },
+      {
+        "company_name": "Various Roles in Tech Mahindra - India & Australia; Infosys - Technology Analyst (Fidelity, USA)",
+        "job_title": "Previous Roles",
+        "employment_dates": "Sep 2007 – Feb 2017",
+        "location": null,
+        "responsibilities": [
+          "Served as Solution Designer, Technical Associate and Senior Developer across customer experience platforms, enhancing system reliability and scaling enterprise solutions."
+        ],
+        "employment_type": null
+      }
+    ],
+    "skills": {
+      "technical_skills": [
+        "System Architecture",
+        "REST APIs",
+        "Java",
+        "Spring",
+        "SQL",
+        "JSON",
+        "Postman",
+        "Swagger",
+        "AWS",
+        "UX/UI Awareness",
+        "Figma",
+        "JIRA",
+        "Confluence",
+        "Git"
+      ],
+      "soft_skills": [
+        "Stakeholder Alignment",
+        "Team Leadership",
+        "Conflict Resolution",
+        "Agile Facilitation"
+      ],
+      "certifications": [
+        "Certified Scrum Product Owner",
+        "Certified SAFe 4 Practitioner"
+      ],
+      "languages": null
+    },
+    "education": [
+      {
+        "institution_name": "Visveswaraya Technological University",
+        "degree": null,
+        "field_of_study": "Computer Science Engineering",
+        "graduation_date": "Jul 2007",
+        "gpa": null,
+        "relevant_coursework": null,
+        "academic_honors": null
+      },
+      {
+        "institution_name": "XLRI, Jamshedpur",
+        "degree": "Executive Program",
+        "field_of_study": "Leadership & Change Management",
+        "graduation_date": "Nov 2017",
+        "gpa": null,
+        "relevant_coursework": null,
+        "academic_honors": null
+      }
+    ],
+    "additional_information": {
+      "projects": null,
+      "publications": null,
+      "awards": null,
+      "volunteer_work": null,
+      "professional_associations": null
+    }
+  },
+  "skill_analysis": [
+    {
+      "skill": "Agile Facilitation",
+      "evidence": "Skilled in requirements documentation, backlog prioritization and cross-functional collaboration with business, IT and QA teams to deliver value-driven features using Agile and SAFe.",
+      "confidence_level": "Expert",
+      "categories": ["Technical", "Leadership"]
+    },
+    {
+      "skill": "Scrum & SAFe",
+      "evidence": "Championed Scrum/SAFe adoption across teams, ensuring 95% release acceptance on first iteration.",
+      "confidence_level": "Expert",
+      "categories": ["Technical", "Leadership"]
+    },
+    {
+      "skill": "Stakeholder Alignment",
+      "evidence": "Known for modernizing platforms, reducing tech debt, and aligning stakeholders to drive measurable outcomes.",
+      "confidence_level": "Expert",
+      "categories": ["Leadership"]
+    },
+    {
+      "skill": "Product Strategy",
+      "evidence": "Expert in translating business needs into scalable, customer-focused solutions.",
+      "confidence_level": "Expert",
+      "categories": ["Domain Expertise"]
+    },
+    {
+      "skill": "Data Privacy",
+      "evidence": "Ensuring compliance with privacy and security standards.",
+      "confidence_level": "Expert",
+      "categories": ["Technical", "Domain Expertise"]
+    },
+    {
+      "skill": "Technical Leadership",
+      "evidence": "Mentored 8-member dev/test team, increasing velocity by 20%",
+      "confidence_level": "Advanced",
+      "categories": ["Leadership"]
+    },
+    {
+      "skill": "Backlog Management",
+      "evidence": "Skilled in requirements documentation and backlog prioritization.",
+      "confidence_level": "Advanced",
+      "categories": ["Technical"]
+    },
+    {
+      "skill": "System Architecture",
+      "evidence": "Served as Solution Designer ... enhancing system reliability and scaling enterprise solutions.",
+      "confidence_level": "Advanced",
+      "categories": ["Technical"]
+    },
+    {
+      "skill": "REST APIs",
+      "evidence": "Reduced cross-team blockers by 40% through API alignment.",
+      "confidence_level": "Advanced",
+      "categories": ["Technical"]
+    },
+    {
+      "skill": "Team Leadership",
+      "evidence": "Championed Scrum/SAFe adoption across teams, ensuring 95% release acceptance.",
+      "confidence_level": "Advanced",
+      "categories": ["Leadership"]
+    },
+    {
+      "skill": "Analytics & Strategy",
+      "evidence": "Data-informed backlog prioritization and iterative loops.",
+      "confidence_level": "Advanced",
+      "categories": ["Technical"]
+    },
+    {
+      "skill": "Java",
+      "evidence": "Experience listed under technical skills.",
+      "confidence_level": "Intermediate",
+      "categories": ["Technical"]
+    },
+    {
+      "skill": "SQL",
+      "evidence": "Experience listed under technical skills.",
+      "confidence_level": "Intermediate",
+      "categories": ["Technical"]
+    },
+    {
+      "skill": "Conflict Resolution",
+      "evidence": "Skill listed under soft skills.",
+      "confidence_level": "Intermediate",
+      "categories": ["Soft Skills"]
+    },
+    {
+      "skill": "UX/UI Awareness",
+      "evidence": "Experience listed under technical skills.",
+      "confidence_level": "Intermediate",
+      "categories": ["Technical"]
+    },
+    {
+      "skill": "Figma",
+      "evidence": "Experience listed under technical skills.",
+      "confidence_level": "Intermediate",
+      "categories": ["Technical"]
+    },
+    {
+      "skill": "Git",
+      "evidence": "Experience listed under technical skills.",
+      "confidence_level": "Intermediate",
+      "categories": ["Technical"]
+    }
+  ]
+}

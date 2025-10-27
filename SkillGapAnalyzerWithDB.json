@@ -1,0 +1,242 @@
+{
+  "name": "SkillGapAnalyzerWithDB",
+  "nodes": [
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-4.1-mini"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        528,
+        416
+      ],
+      "id": "eae3858a-726c-40d4-baf0-13b5c4085d60",
+      "name": "OpenAI Chat Model",
+      "credentials": {
+        "openAiApi": {
+          "id": "hy8GfGoyHcsM0Zn8",
+          "name": "OpenAi account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "Return all the input data passed as output.",
+        "hasOutputParser": true,
+        "options": {
+          "systemMessage": "=Role:\nYou are the Skill Normalizer Agent.\n\nInput:\n{{ JSON.stringify($json[\"body\"]) }}\n\n\nInstructions:\nReturn output json.\n\n\nOutput: \nReturn clean JSON that can be fed directly to the Skill Gap Analyzer Agent.\n\n\nDo not assume roles and skills. Just return the output json based on the input json."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2.2,
+      "position": [
+        528,
+        144
+      ],
+      "id": "3000c316-4c1c-468c-bdb6-6012c6c31f2a",
+      "name": "Normalizer Agent",
+      "alwaysOutputData": true,
+      "executeOnce": true
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "Analyze all the skill gaps for the user and return the output data in json format.",
+        "hasOutputParser": true,
+        "options": {
+          "systemMessage": "=Role:\nYou are an expert Skill Retrieval Agent.\nYour role is to compare a user’s normalized current skills against the top 10 primary skills required in each category for their target role, identify and prioritize gaps, and output results in a structured JSON.\n\nInstructions:\n\nStep 1. Input:\n\nNormalized user skill profile (from Skill Normalizer Agent). Available in \nInput:\n{{ JSON.stringify($(\"Normalizer Agent\").all().map(item => item.json)) }}\n\nGet the Role taxonomy (with skills + target proficiency levels) from the Airtable which is connected as a tool to the agent only for the role (i.e the target_role)\n\nStep 2: Identify skill gaps\n\n1. Level Definitions:\n - Beginner < Intermediate < Advanced < Expert\n - Not Listed means the user does not currently have the skill.\n\n2. Skill Selection\n○ Identify the top 10 primary skills required for the target role from the taxonomy in each category. Do not miss any category.\n○ Arrange skills in logical/chronological order based on rank for each category.\n\n3. Comparison Logic\n○ For each skill retrieved from the airtable:\na. If user skill meets or exceeds target (current_level ≥ target_level_desc )→ classify as Strength.\nb. If user skill below target (current_level < target_level_desc )→ classify as Needs Development.\nc. If user skill not listed → classify as Missing.\nd. Do not include strengths in the gap analysis section. i.e Include only gaps (Needs Development, Missing) in skill_gaps.\ne. Include strengths in separate strengths section.\nf. Do the comparison logic for all the skills retrieved from the role taxonomy.\n\t\t\t\t\n4. Gap Summary Logic:\na. If skill is Missing → \"gap_summary\": \"Skill not found in profile but required for target role.\"\nb. If skill is Needs Development →\n\nBeginner → Intermediate → \"Needs 1 level improvement\"\nBeginner → Advanced → \"Needs 2 level improvement\"\nBeginner → Expert → \"Needs 3 level improvement\"\nIntermediate → Advanced → \"Needs 1 level improvement\"\nIntermediate → Expert → \"Needs 2 level improvement\"\nAdvanced → Expert → \"Needs 1 level improvement\"\n\n5. Output:\t\n\tThe agent must always return results in a structured JSON with three main sections:\n\t\t\t\nSection 1: skill_gaps\nContains only the skills where the user is below the target level (Needs Development) or does not have the skill at all (Missing).\nEach entry must include:\n§ skill → standardized skill name\n§ category → From the role taxanomy\n§ current_level → one of [Beginner, Intermediate, Advanced, Expert, Not Listed]\n§ target_level → one of [Beginner, Intermediate, Advanced, Expert]\n§ status → Needs Development or Missing\n§ gap_summary → short explanation of the gap (e.g., “Needs 1 level improvement” or “Skill not found in profile but required for target role”)\n\t\nSection 2. strengths\n○ Contains only the skills where the user’s current level meets or exceeds the target level (Strength).\n○ Each entry must include:\n§ skill → standardized skill name\n§ category → Category mapped in the role taxonomy\n§ current_level → user’s current proficiency\n§ target_level → required proficiency for the role\n§ status → Strength\n\t\nSection 3. metadata\n○ Provides summary-level information for traceability.\n○ Must include:\n§ target_role → the normalized target role title\n§ total_skills_analyzed → number of skills evaluated (always up to 10)\n§ total_gaps → count of skills in the skill_gaps section\n§ total_strengths → count of skills in the strengths section\n\nRules for output:\n\t\t\t\n\t○ Always include both skill_gaps and strengths arrays, even if one is empty.\n\t○ A skill cannot appear in both sections.\n\t○ Only the top 10 primary skills in each category for the target role should be considered.\n\t○ Levels must always use the fixed set: Beginner, Intermediate, Advanced, Expert, Not Listed.\n\t○ Gap summaries must follow the deterministic rules based on current vs. target proficiency.\n\nExample:\n\t{\n\t\t\t  \"target_role\": \"<string>\",\n\t\t\t  \"skill_gaps\": [\n\t\t\t    {\n\t\t\t      \"skill\": \"<string>\",\n\t\t\t      \"category\": \"<category of skill from role taxanomy>\",\n\t\t\t      \"current_level\": \"<Beginner | Intermediate | Advanced | Expert | Not Listed>\",\n\t\t\t      \"target_level\": \"<Beginner | Intermediate | Advanced | Expert>\",\n\t\t\t      \"status\": \"Needs Development | Missing\",\n\t\t\t      \"gap_summary\": \"<string>\"\n\t\t\t    }\n\t\t\t  ],\n\t\t\t  \"strengths\": [\n\t\t\t    {\n\t\t\t      \"skill\": \"<string>\",\n\t\t\t      \"category\": \"<category of skill from role taxanomy>\",\n\t\t\t      \"current_level\": \"<Beginner | Intermediate | Advanced | Expert>\",\n\t\t\t      \"target_level\": \"<Beginner | Intermediate | Advanced | Expert>\",\n\t\t\t      \"status\": \"Strength\"\n\t\t\t    }\n\t\t\t  ],\n\t\t\t  \"metadata\": {\n\t\t\t    \"total_skills_analyzed\": \"<int>\",\n\t\t\t    \"total_gaps\": \"<int>\",\n\t\t\t    \"total_strengths\": \"<int>\"\n\t\t\t  }\n\t}\n\n"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2.2,
+      "position": [
+        1248,
+        144
+      ],
+      "id": "99770c55-251c-40ef-acd3-794a081c11d2",
+      "name": "SkillGapAnalyzer",
+      "alwaysOutputData": true,
+      "executeOnce": true
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-4.1-mini"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        1312,
+        496
+      ],
+      "id": "4d80df2c-7e42-40f7-b7eb-9764dbdb5ff3",
+      "name": "OpenAI Chat Model1",
+      "credentials": {
+        "openAiApi": {
+          "id": "hy8GfGoyHcsM0Zn8",
+          "name": "OpenAi account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "respondWith": "allIncomingItems",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.4,
+      "position": [
+        1824,
+        144
+      ],
+      "id": "a83a5b3d-d320-437e-a4f6-81ca67040002",
+      "name": "Respond to Webhook",
+      "alwaysOutputData": true,
+      "executeOnce": false
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "skillGapAnalyzerDB",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        32,
+        144
+      ],
+      "id": "01e9befe-28b5-437e-a7ff-0aba4a6baa2a",
+      "name": "Webhook",
+      "webhookId": "a3879aac-0cf8-4c42-8c19-76bc4c53e70c",
+      "alwaysOutputData": false
+    },
+    {
+      "parameters": {
+        "operation": "search",
+        "base": {
+          "__rl": true,
+          "value": "appEgU5jYiMDINDAU",
+          "mode": "list",
+          "cachedResultName": "Base Designer",
+          "cachedResultUrl": "https://airtable.com/appEgU5jYiMDINDAU"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tblppQdUI8yAG2nag",
+          "mode": "list",
+          "cachedResultName": "RoleSkillsMappingTable",
+          "cachedResultUrl": "https://airtable.com/appEgU5jYiMDINDAU/tblppQdUI8yAG2nag"
+        },
+        "filterByFormula": "=",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.airtableTool",
+      "typeVersion": 2.1,
+      "position": [
+        1600,
+        400
+      ],
+      "id": "e351802a-f5c0-4de5-9eea-8f593f6449a8",
+      "name": "Search records in Airtable",
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "MYFSvvqR8LtfTNIj",
+          "name": "Airtable Personal Access Token account 2"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Normalizer Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Normalizer Agent": {
+      "main": [
+        [
+          {
+            "node": "SkillGapAnalyzer",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "SkillGapAnalyzer": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model1": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "SkillGapAnalyzer",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Normalizer Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Search records in Airtable": {
+      "ai_tool": [
+        [
+          {
+            "node": "SkillGapAnalyzer",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "f8dd666c-4f1b-4883-a4b2-7f079f8e238c",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "2a3fc5005f7caf7cac37a78749c6507795b63c2976180106c41e6a61da19f64b"
+  },
+  "id": "Z5BKGuXUrbtRi2So",
+  "tags": []
+}

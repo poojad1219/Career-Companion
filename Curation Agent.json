@@ -1,0 +1,344 @@
+{
+  "name": "Curation Agent",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "curation",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "52b5cd35-729d-45c4-9470-f0433fbd25f3",
+      "name": "Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "position": [
+        -544,
+        240
+      ],
+      "webhookId": "9024e29e-9080-4cf5-9a6b-0d918468f195",
+      "typeVersion": 2
+    },
+    {
+      "parameters": {
+        "respondWith": "allIncomingItems",
+        "options": {}
+      },
+      "id": "effa5ea1-5b10-4728-ac66-84b20dfeba9a",
+      "name": "Respond to Webhook",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "position": [
+        1232,
+        176
+      ],
+      "typeVersion": 1.1
+    },
+    {
+      "parameters": {
+        "url": "https://www.googleapis.com/youtube/v3/search",
+        "sendQuery": true,
+        "specifyQuery": "json",
+        "jsonQuery": "={\n  \"part\": \"snippet\",\n  \"q\": \"={{$json.query}}\",\n  \"type\": \"video\",\n  \"order\": \"date\",\n  \"maxResults\": 100,\n  \"key\": \"AIzaSyDGo3qwifQwY7r4scx6R1oUmobGytK0tFM\"\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        240,
+        0
+      ],
+      "id": "e5570e2e-ea98-4fe5-9f6c-a82d0a2314df",
+      "name": "HTTP Request"
+    },
+    {
+      "parameters": {
+        "jsCode": "const response = items[0].json;  \nconst videos = response.items || [];\n\n// Thresholds (you can adjust these)\nconst MIN_VIEWS = 500;\nconst MIN_LIKES = 500;\nconst MIN_COMMENTS = 50;\nconst MAX_DURATION_MINUTES = 45; // ⏱️ max allowed video length\n\n// Helper function: convert ISO8601 duration to { formatted, totalMinutes }\nfunction parseDuration(isoDuration) {\n  const match = isoDuration?.match(/PT(?:(\\d+)H)?(?:(\\d+)M)?(?:(\\d+)S)?/);\n  if (!match) return { formatted: \"\", totalMinutes: 0 };\n\n  const hours = parseInt(match[1] || \"0\", 10);\n  const minutes = parseInt(match[2] || \"0\", 10);\n  const seconds = parseInt(match[3] || \"0\", 10);\n\n  const totalMinutes = hours * 60 + minutes + (seconds > 0 ? 1 : 0);\n\n  const parts = [];\n  if (hours > 0) parts.push(hours.toString());\n  parts.push(minutes.toString().padStart(2, \"0\"));\n  parts.push(seconds.toString().padStart(2, \"0\"));\n\n  return { formatted: parts.join(\":\"), totalMinutes };\n}\n\n// Filter + sort + map\nconst topVideos = videos\n  .filter(video => {\n    const stats = video.statistics || {};\n    const views = parseInt(stats.viewCount || \"0\", 10);\n    const likes = parseInt(stats.likeCount || \"0\", 10);\n    const comments = parseInt(stats.commentCount || \"0\", 10);\n\n    const { totalMinutes } = parseDuration(video.contentDetails?.duration || \"\");\n\n    return (\n      views >= MIN_VIEWS &&\n      likes >= MIN_LIKES &&\n      comments >= MIN_COMMENTS &&\n      totalMinutes <= MAX_DURATION_MINUTES // ✅ exclude > 45 min\n    );\n  })\n  .sort((a, b) => {\n    // Sort by views (highest first)\n    const viewsA = parseInt(a.statistics?.viewCount || \"0\", 10);\n    const viewsB = parseInt(b.statistics?.viewCount || \"0\", 10);\n    return viewsB - viewsA;\n  })\n  .slice(0, 10) // pick only top 10\n  .map(video => {\n    const videoId = video.id?.videoId || video.id; // sometimes it's nested\n    const { formatted } = parseDuration(video.contentDetails?.duration || \"\");\n\n    return {\n      title: video.snippet?.title || \"\",\n      url: videoId ? `https://www.youtube.com/watch?v=${videoId}` : \"\",\n      channel: video.snippet?.channelTitle || \"\",\n      duration: formatted\n    };\n  });\n\n// Build final webhook payload\nreturn [\n  {\n    json: {\n      webhookData: {\n        topVideos\n      }\n    }\n  }\n];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        672,
+        0
+      ],
+      "id": "d2f2c9eb-0ed9-48c4-a142-8a8ab21130fd",
+      "name": "Code in JavaScript"
+    },
+    {
+      "parameters": {
+        "jsCode": "return [\n  {\n    json: {\n      query: $json.body.targetRole + \" videos\"\n    }\n  }\n];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        0,
+        0
+      ],
+      "id": "6ae3ebf9-f40f-4b01-b60a-6013b5dd85be",
+      "name": "Code in JavaScript1"
+    },
+    {
+      "parameters": {
+        "url": "https://www.googleapis.com/youtube/v3/videos",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "part",
+              "value": "snippet,statistics,contentDetails"
+            },
+            {
+              "name": "id",
+              "value": "={{ $json[\"items\"].map(v => v.id.videoId).join(\",\") }}"
+            },
+            {
+              "name": "key",
+              "value": "AIzaSyDGo3qwifQwY7r4scx6R1oUmobGytK0tFM"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        448,
+        0
+      ],
+      "id": "f5c367f9-f221-4b8e-b6fe-c70fcfb5b116",
+      "name": "HTTP Request1"
+    },
+    {
+      "parameters": {
+        "batching": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.7,
+      "position": [
+        288,
+        336
+      ],
+      "id": "8b22934f-9018-4354-a7e2-f3aa486e5cb3",
+      "name": "Basic LLM Chain"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "gpt-4o-mini",
+          "mode": "list",
+          "cachedResultName": "gpt-4o-mini"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        304,
+        528
+      ],
+      "id": "ba49f33e-e071-4553-b06a-15ccce737070",
+      "name": "OpenAI Chat Model",
+      "credentials": {
+        "openAiApi": {
+          "id": "hy8GfGoyHcsM0Zn8",
+          "name": "OpenAi account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const body = $json.body || {};\n\nconst role = body.targetRole || \"\";\n\nlet skills = body.skillsToAcquire || [];\nif (typeof skills === \"string\" && skills.trim().length > 0) {\n  skills = skills.split(\",\").map(s => s.trim());\n}\n\nlet whyHere = body.whyHere || [];\nif (typeof whyHere === \"string\" && whyHere.trim().length > 0) {\n  whyHere = whyHere.split(\",\").map(s => s.trim());\n}\n\nlet chatInput = \"\";\n\nconst jsonFormat = \n  \"{ \\\"recommendations\\\": [ \" +\n  \"{ \\\"id\\\": \\\"unique-id-1\\\", \\\"type\\\": \\\"course\\\" | \\\"video\\\" | \\\"article\\\", \" +\n  \"\\\"title\\\": \\\"string\\\", \" +\n  \"\\\"description\\\": \\\"string\\\", \" +\n  \"\\\"duration\\\": \\\"string (e.g., '40 hours', '6 weeks', or '15 min read')\\\", \" +\n  \"\\\"rating\\\": number (e.g., 4.5), \" +\n  \"\\\"difficulty\\\": \\\"beginner\\\" | \\\"intermediate\\\" | \\\"advanced\\\", \" +\n  \"\\\"skills\\\": [\\\"skill1\\\", \\\"skill2\\\"], \" +\n  \"\\\"instructor\\\": \\\"string (name of the instructor or organization)\\\", \" + // <-- added instructor\n  \"\\\"url\\\": \\\"direct link to the resource\\\" } ] }\";\n\nif (skills.length > 0 && whyHere.length > 0) {\n  chatInput = \"Suggest the top 5 famous online technical courses (from platforms like Coursera, Udemy, edX, LinkedIn Learning, Maven) \" +\n              `that will help a user acquire these skills: ${skills.join(\", \")}. ` +\n              `The user wants to switch to the role of ${role}. ` +\n              `Their motivation is: ${whyHere.join(\", \")}. ` +\n              \"⚡ Only suggest courses that are popular, have multiple reviews, and are widely taken by learners. \" +\n              `Return the result STRICTLY in this JSON format: ${jsonFormat}`;\n} else if (skills.length > 0) {\n  chatInput = \"Suggest the top 5 famous online technical courses (from platforms like Coursera, Udemy, edX, LinkedIn Learning, Maven) \" +\n              `that will help a user acquire these skills: ${skills.join(\", \")}. ` +\n              `The user wants to switch to the role of ${role}. ` +\n              \"⚡ Only suggest courses that are popular, have multiple reviews, and are widely taken by learners. \" +\n              `Return the result STRICTLY in the same JSON format: ${jsonFormat}`;\n} else {\n  chatInput = \"Suggest the top 5 famous online technical courses (from platforms like Maven rank 1, Coursera rank 2, LinkedIn Learning Rank 3, Udemy Rank 4, edX Rank 5) \" +\n              `for someone aiming to become a ${role}. ` +\n              \"⚡ Only suggest courses that are popular, have multiple reviews, and are widely taken by learners. \" +\n              `Return the result STRICTLY in the same JSON format: ${jsonFormat}`;\n}\n\nreturn [{ json: { chatInput } }];\n\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        16,
+        336
+      ],
+      "id": "e26543d3-e18c-47af-9d4d-a7379477cb43",
+      "name": "Code in JavaScript2"
+    },
+    {
+      "parameters": {
+        "jsCode": "let raw = $json.text || \"\";\nraw = raw.replace(/```json|```/g, \"\").trim();\n\nlet parsed;\ntry {\n  parsed = JSON.parse(raw);\n} catch (e) {\n  throw new Error(\"Failed to parse LLM JSON: \" + e.message + \" | Raw: \" + raw);\n}\n\n// Fallback if model wrapped array directly\nlet courses = parsed.courses || parsed.recommendations || parsed.topCourses || parsed || [];\n\n// Map into expected structure\nlet topCourses = courses.map((course, i) => {\n  // Ensure rating is always preserved as number (if numeric) or string\n  let rating = course.rating;\n  if (typeof rating === \"string\" && !isNaN(parseFloat(rating))) {\n    rating = parseFloat(rating);\n  }\n\n  return {\n    id: `unique-id-${i+1}`,\n    type: course.type || \"course\",\n    title: course.title,\n    description: course.description || \"\",\n    duration: course.duration || \"Self-paced\",\n    rating: rating, // ✅ always preserved\n    difficulty: course.difficulty || \"intermediate\",\n    skills: course.skills || [course.platform].filter(Boolean),\n    instructor: course.instructor || course.author || course.channel || \"\", // ✅ added instructor\n    url: course.link || course.url || \"\"\n  };\n});\n\n// Wrap in Lovable’s expected schema but using \"topCourses\"\nreturn [{ json: { topCourses } }];\n\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        640,
+        336
+      ],
+      "id": "3a2b599f-49c5-4cab-84fd-6daf3af6c891",
+      "name": "Code in JavaScript3"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        944,
+        176
+      ],
+      "id": "817110ba-9d82-4e8c-b5b9-94de8c19590c",
+      "name": "Merge"
+    },
+    {
+      "parameters": {
+        "content": "You tube videos for tutorials",
+        "height": 80,
+        "width": 192
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -368,
+        32
+      ],
+      "typeVersion": 1,
+      "id": "99483e71-567b-45ce-8652-0ac5014af3ec",
+      "name": "Sticky Note"
+    },
+    {
+      "parameters": {
+        "content": "Courses from open AI",
+        "height": 80,
+        "width": 150
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -352,
+        384
+      ],
+      "typeVersion": 1,
+      "id": "a49cbf8d-6f3c-4069-a85a-44fc01618ed6",
+      "name": "Sticky Note1"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript1",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Code in JavaScript2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript1": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request1": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Basic LLM Chain": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Basic LLM Chain",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript2": {
+      "main": [
+        [
+          {
+            "node": "Basic LLM Chain",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript3": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Merge": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "b92526a4-89a9-4bc7-85b3-062d2c1ac700",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "2a3fc5005f7caf7cac37a78749c6507795b63c2976180106c41e6a61da19f64b"
+  },
+  "id": "CdEhD5Kal58l1TBt",
+  "tags": []
+}
