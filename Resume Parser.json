@@ -1,0 +1,156 @@
+{
+  "name": "Resume Parser",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "receive-resume",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        0,
+        0
+      ],
+      "id": "b6388baf-25e2-40f6-ac89-e12c21155574",
+      "name": "Webhook",
+      "webhookId": "788f671c-cefd-4ffd-820b-4e46047e7dfb"
+    },
+    {
+      "parameters": {
+        "respondWith": "allIncomingItems",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.4,
+      "position": [
+        1168,
+        0
+      ],
+      "id": "73752238-1cd0-4519-92fa-e0e2121a6a73",
+      "name": "Respond to Webhook",
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "gpt-4o-mini",
+          "mode": "list",
+          "cachedResultName": "gpt-4o-mini"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        576,
+        208
+      ],
+      "id": "0d427e03-9fd7-4072-a79a-7e89ff08aedf",
+      "name": "OpenAI Chat Model",
+      "credentials": {
+        "openAiApi": {
+          "id": "olhqSgqKUa8ZBy77",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "pdf",
+        "binaryPropertyName": "resume",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.extractFromFile",
+      "typeVersion": 1,
+      "position": [
+        208,
+        0
+      ],
+      "id": "76852891-da1d-4c6e-9016-e46bc4dc6551",
+      "name": "Extract from File"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=You are a Resume Intelligence Agent. Your task is to extract and analyze all information from the resume text provided.\n\nTASK 1: Extract Resume Data\n\t1.\tAlways return a single valid JSON object with \"extracted_data\" and \"skill_analysis\".\n\t2.\tDo not assume any missing information. If a field is not explicitly present in the resume, return null.\n\t3.\tLocation: extract the city, state, or country wherever mentioned in the resume. Do not leave as null if a location exists.\n\t4.\tLinkedIn: extract only the actual URL. If no URL is present, return null. Do not return the text “LinkedIn.”\n\t5.\tEmployment Type: do not fill or assume. If not mentioned, return null.\n\t6.\tPreserve exact text whenever possible.\n    7. Data structure of the Json response should be as below:\n\n\t•\tpersonal_information: full_name, email, phone, location, linkedin, portfolio\n\t•\tprofessional_summary\n\t•\twork_experience: for each job, include company_name, job_title, employment_dates, location, responsibilities (list), employment_type\n\t•\tskills: technical_skills (list), soft_skills (list), certifications (list), languages (list)\n\t•\teducation: for each degree, include institution_name, degree, field_of_study, graduation_date, gpa, relevant_coursework (list), academic_honors (list)\n\t•\tadditional_information: projects (list), publications (list), awards (list), volunteer_work (list), professional_associations (list)\n\nTASK 2: Skill Analysis\n\t1.\tIdentify explicit and implicit skills from the resume.\n\t2.\tMap each skill to supporting evidence (verbatim or inferred).\n\t3.\tAssign a confidence level: Beginner, Intermediate, Advanced, Expert.\n\t4.\tAssign one or more categories per skill: Technical, Leadership, Domain Expertise, Soft Skills, Certifications.\n\nOUTPUT FORMAT:\n\t•\tReturn a single JSON object with two top-level keys: \"extracted_data\" and \"skill_analysis\".\n\t•\tMaintain chronological order for work experience and education.\n\t•\tUse null for missing values.\n\t•\tInclude reasoning for inferred skills in \"reasoning\".\n\t•\tJSON should be valid and ready for storage in n8n variables.\n\n{{ $json.text }}",
+        "hasOutputParser": true,
+        "options": {
+          "systemMessage": ""
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2.2,
+      "position": [
+        640,
+        0
+      ],
+      "id": "d6098284-fe4d-4a9c-a22a-6a78b294e34a",
+      "name": "Parse Resume",
+      "alwaysOutputData": true,
+      "executeOnce": false
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Extract from File",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Parse Resume",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract from File": {
+      "main": [
+        [
+          {
+            "node": "Parse Resume",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse Resume": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "callerPolicy": "any"
+  },
+  "versionId": "b2c11e4f-845f-425e-821a-c0b1265dff47",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "2a3fc5005f7caf7cac37a78749c6507795b63c2976180106c41e6a61da19f64b"
+  },
+  "id": "wrODItFGnHuVdt7g",
+  "tags": []
+}
